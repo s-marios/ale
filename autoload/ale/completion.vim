@@ -13,6 +13,12 @@ cnoremap <silent> <Plug>(ale_show_completion_menu) <Nop>
 vnoremap <silent> <Plug>(ale_show_completion_menu) <Nop>
 onoremap <silent> <Plug>(ale_show_completion_menu) <Nop>
 
+" Plug maps for closing the completion menu
+inoremap <silent> <Plug>(ale_stop_completion_menu) <C-x><C-z>
+"cnoremap <silent> <Plug>(ale_stop_completion_menu) <Nop>
+"vnoremap <silent> <Plug>(ale_stop_completion_menu) <Nop>
+"onoremap <silent> <Plug>(ale_stop_completion_menu) <Nop>
+
 let g:ale_completion_delay = get(g:, 'ale_completion_delay', 100)
 let g:ale_completion_excluded_words = get(g:, 'ale_completion_excluded_words', [])
 let g:ale_completion_max_suggestions = get(g:, 'ale_completion_max_suggestions', 50)
@@ -981,6 +987,14 @@ function! ale#completion#StopTimer() abort
     let s:timer_id = -1
 endfunction
 
+" Close the previous completion menu (if any), so that the newer
+" autocompletion candidates will show up
+function! s:closePreviousCompletionMenu() abort
+    if exists('*complete_info') && !empty(complete_info(['mode']))
+        call ale#util#FeedKeys("\<Plug>(ale_stop_completion_menu)")
+    endif
+endfunction
+
 function! ale#completion#Queue() abort
     if !get(b:, 'ale_completion_enabled', g:ale_completion_enabled)
         return
@@ -1001,6 +1015,8 @@ function! ale#completion#Queue() abort
     endif
 
     call ale#completion#StopTimer()
+
+    call s:closePreviousCompletionMenu()
 
     let s:timer_id = timer_start(g:ale_completion_delay, function('s:TimerHandler'))
 endfunction
